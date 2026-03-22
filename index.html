@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Pagos a Proveedores</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink:          #0f0e0d;
+      --ink-muted:    #5a5651;
+      --ink-faint:    #b0aca6;
+      --surface:      #faf9f7;
+      --surface-raised:#ffffff;
+      --gold:         #b8924a;
+      --gold-light:   #e8d5aa;
+      --gold-faint:   #f5edd8;
+      --danger:       #c0392b;
+      --success:      #1a7a4a;
+      --info:         #1a4a7a;
+      --radius:       6px;
+      --radius-lg:    12px;
+      --shadow:       0 2px 28px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--surface);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px 60px;
+    }
+
+    /* ── Brand ── */
+    .brand {
+      text-align: center;
+      margin-bottom: 32px;
+      animation: fadeUp .5s cubic-bezier(.22,1,.36,1) both;
+    }
+    .brand-mark {
+      width: 52px; height: 52px;
+      background: var(--ink);
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+      font-size: 24px;
+    }
+    .brand h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.1;
+    }
+    .brand p {
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--ink-muted);
+      letter-spacing: .3px;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface-raised);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 520px;
+      overflow: hidden;
+      animation: cardIn .5s cubic-bezier(.22,1,.36,1) .08s both;
+    }
+    .card-accent {
+      height: 3px;
+      background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+    }
+    .card-body { padding: 36px 36px 32px; }
+
+    /* ── Section title ── */
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 20px;
+    }
+
+    /* ── Fields ── */
+    .field-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      margin-bottom: 7px;
+    }
+    .required { color: var(--gold); margin-left: 2px; }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #e5e0d8;
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--ink);
+      background: var(--surface-raised);
+      transition: border .2s, box-shadow .2s;
+      outline: none;
+      appearance: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(184,146,74,.12);
+    }
+    input.error, select.error, textarea.error {
+      border-color: var(--danger);
+    }
+    textarea { resize: vertical; min-height: 80px; }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a5651' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; cursor:pointer; }
+
+    .field-hint  { font-size: 11px; color: var(--ink-faint); margin-top: 5px; display: block; }
+    .field-error { font-size: 11px; color: var(--danger); margin-top: 5px; display: none; }
+    .field-group.has-error .field-error { display: block; }
+    .field-group.has-error .field-hint  { display: none; }
+
+    /* ── Vencimiento preview ── */
+    .venc-box {
+      background: var(--gold-faint);
+      border: 1.5px solid var(--gold-light);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      margin-bottom: 24px;
+      display: none;
+    }
+    .venc-box.visible { display: flex; align-items: center; gap: 12px; }
+    .venc-box .venc-icon { font-size: 20px; }
+    .venc-box .venc-text { font-size: 13px; color: var(--ink-muted); }
+    .venc-box .venc-date { font-weight: 700; color: var(--ink); font-size: 15px; }
+    .venc-box .venc-days { font-size: 11px; color: var(--gold); font-weight: 600; margin-top: 1px; }
+
+    /* ── Divider ── */
+    .divider { border: none; border-top: 1px solid #f0ece4; margin: 24px 0; }
+
+    /* ── Button ── */
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background: var(--ink);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: .5px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: opacity .2s, transform .15s;
+    }
+    .btn-submit::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(184,146,74,.18), transparent);
+      transform: translateX(-100%);
+      transition: transform .4s;
+    }
+    .btn-submit:hover:not(:disabled)::before { transform: translateX(100%); }
+    .btn-submit:hover:not(:disabled) { opacity: .92; }
+    .btn-submit:active:not(:disabled) { transform: scale(.98); }
+    .btn-submit:disabled { opacity: .55; cursor: not-allowed; }
+
+    .spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      margin-right: 8px; vertical-align: middle;
+    }
+
+    /* ── Panels ── */
+    #msg-success, #msg-error { display: none; text-align: center; padding: 20px 0 4px; }
+
+    .panel-icon { font-size: 44px; margin-bottom: 12px; }
+    .panel-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    .panel-msg { font-size: 14px; color: var(--ink-muted); max-width: 340px; margin: 0 auto 20px; line-height: 1.6; }
+    .panel-msg.success-msg { color: var(--success); font-weight: 600; font-size: 15px; }
+
+    .btn-retry {
+      background: transparent;
+      border: 1.5px solid var(--gold-light);
+      color: var(--ink-muted);
+      border-radius: var(--radius);
+      padding: 10px 24px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      transition: border-color .2s, color .2s;
+    }
+    .btn-retry:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ── Loading providers ── */
+    .loading-prov {
+      text-align: center;
+      padding: 40px 0;
+      color: var(--ink-faint);
+      font-size: 13px;
+    }
+    .loading-prov .spinner-dark {
+      display: inline-block; width: 18px; height: 18px;
+      border: 2px solid #e5e0d8;
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      margin-bottom: 10px;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      margin-top: 28px;
+      font-size: 11px;
+      color: var(--ink-faint);
+      text-align: center;
+      letter-spacing: .3px;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp  { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+    @keyframes cardIn  { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+    @keyframes spin    { to { transform: rotate(360deg); } }
+
+    @media (max-width: 560px) {
+      .card-body { padding: 28px 20px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Brand -->
+  <div class="brand">
+    <div class="brand-mark">📋</div>
+    <h1>Gestión de Pagos</h1>
+    <p>Registrá compras y controlá vencimientos de proveedores</p>
+  </div>
+
+  <!-- Card -->
+  <div class="card">
+    <div class="card-accent"></div>
+    <div class="card-body">
+
+      <!-- Loading state while fetching providers -->
+      <div id="loading-provs" class="loading-prov">
+        <div class="spinner-dark"></div>
+        <p>Cargando proveedores…</p>
+      </div>
+
+      <!-- Form -->
+      <div id="form-section" style="display:none;">
+        <p class="section-title">Nueva compra</p>
+
+        <!-- Proveedor -->
+        <div class="field-group" id="fg-proveedor">
+          <label for="proveedor">Proveedor <span class="required">*</span></label>
+          <select id="proveedor">
+            <option value="">— Seleccioná un proveedor —</option>
+          </select>
+          <span class="field-hint">El plazo de pago se calculará automáticamente.</span>
+          <span class="field-error">Seleccioná un proveedor.</span>
+        </div>
+
+        <!-- Monto -->
+        <div class="field-group" id="fg-monto">
+          <label for="monto">Monto <span class="required">*</span></label>
+          <input type="number" id="monto" placeholder="0.00" min="0" step="0.01">
+          <span class="field-hint">Ingresá el importe total de la compra.</span>
+          <span class="field-error">El monto debe ser mayor a cero.</span>
+        </div>
+
+        <!-- Descripción -->
+        <div class="field-group" id="fg-descripcion">
+          <label for="descripcion">Descripción</label>
+          <textarea id="descripcion" placeholder="Ej: Materia prima — 200 unidades de producto X"></textarea>
+          <span class="field-hint">Opcional. Detallá qué compraste.</span>
+        </div>
+
+        <!-- Fecha de compra -->
+        <div class="field-group" id="fg-fecha">
+          <label for="fechaCompra">Fecha de compra <span class="required">*</span></label>
+          <input type="date" id="fechaCompra">
+          <span class="field-hint">Fecha en que recibiste la mercadería o servicio.</span>
+          <span class="field-error">Seleccioná una fecha de compra.</span>
+        </div>
+
+        <!-- Vencimiento calculado -->
+        <div class="venc-box" id="venc-preview">
+          <div class="venc-icon">📅</div>
+          <div class="venc-text">
+            Vence el <div class="venc-date" id="venc-date">—</div>
+            <div class="venc-days" id="venc-days"></div>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <button class="btn-submit" id="btn-submit" onclick="enviarFormulario()">
+          Registrar compra
+        </button>
+      </div>
+
+      <!-- Success -->
+      <div id="msg-success">
+        <div class="panel-icon">✅</div>
+        <div class="panel-title">¡Compra registrada!</div>
+        <p class="panel-msg success-msg" id="success-detail"></p>
+        <p class="panel-msg">La información quedó guardada en Google Sheets.</p>
+        <button class="btn-retry" onclick="resetFormulario()">Registrar otra compra</button>
+      </div>
+
+      <!-- Error -->
+      <div id="msg-error">
+        <div class="panel-icon">⚠️</div>
+        <div class="panel-title">Algo salió mal</div>
+        <p class="panel-msg" id="error-detail">Ocurrió un error al guardar la compra.</p>
+        <button class="btn-retry" onclick="resetFormulario()">Intentar de nuevo</button>
+      </div>
+
+    </div>
+  </div>
+
+  <p class="footer">Gestión de Pagos a Proveedores — Sistema interno</p>
+
+<script>
+(function() {
+
+  // ═══════════════════════════════════════════════════
+  //  ▼▼▼  ÚNICO VALOR QUE TENÉS QUE EDITAR  ▼▼▼
+  // ═══════════════════════════════════════════════════
+  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycby6he7SPUugz4FhbNlupkyR_xWM-4fWqmzCKngazt0j1fVqnZeQ-uAFYn4SnkFFAFbu/exec";
+  // ═══════════════════════════════════════════════════
+
+  // Mapa de proveedores: nombre → diasPago
+  let proveedoresMap = {};
+
+  // ── Inicialización ──────────────────────────────────
+  window.addEventListener('DOMContentLoaded', () => {
+    // Fecha de hoy por defecto
+    const hoy = new Date();
+    const yyyy = hoy.getFullYear();
+    const mm   = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dd   = String(hoy.getDate()).padStart(2, '0');
+    document.getElementById('fechaCompra').value = `${yyyy}-${mm}-${dd}`;
+
+    cargarProveedores();
+
+    // Recalcular vencimiento cuando cambia proveedor o fecha
+    document.getElementById('proveedor').addEventListener('change', calcularVencimiento);
+    document.getElementById('fechaCompra').addEventListener('change', calcularVencimiento);
+
+    // Limpiar errores al escribir
+    ['proveedor','monto','descripcion','fechaCompra'].forEach(id => {
+      const el = document.getElementById(id);
+      el.addEventListener('input', () => limpiarError(id));
+      el.addEventListener('change', () => limpiarError(id));
+    });
+  });
+
+  // ── Cargar proveedores desde Apps Script ─────────────
+  async function cargarProveedores() {
+    try {
+      const res  = await fetch(`${WEBAPP_URL}?action=getProveedores`);
+      const data = await res.json();
+
+      if (!data.success) throw new Error(data.error || 'Error desconocido');
+
+      const select = document.getElementById('proveedor');
+      data.proveedores.forEach(p => {
+        proveedoresMap[p.nombre] = p.diasPago;
+        const opt = document.createElement('option');
+        opt.value = p.nombre;
+        opt.textContent = `${p.nombre}  (${p.diasPago} días)`;
+        select.appendChild(opt);
+      });
+
+      document.getElementById('loading-provs').style.display = 'none';
+      document.getElementById('form-section').style.display  = 'block';
+
+    } catch (err) {
+      document.getElementById('loading-provs').innerHTML = `
+        <p style="color:var(--danger);font-size:13px;">
+          ⚠️ No se pudieron cargar los proveedores.<br>
+          <small>Verificá la URL del Web App y que la hoja "Proveedores" exista.</small><br><br>
+          <button class="btn-retry" onclick="location.reload()" style="margin-top:8px;">Reintentar</button>
+        </p>`;
+    }
+  }
+
+  // ── Calcular y mostrar fecha de vencimiento ──────────
+  function calcularVencimiento() {
+    const provNombre = document.getElementById('proveedor').value;
+    const fechaStr   = document.getElementById('fechaCompra').value;
+    const box        = document.getElementById('venc-preview');
+
+    if (!provNombre || !fechaStr) {
+      box.classList.remove('visible');
+      return;
+    }
+
+    const dias      = proveedoresMap[provNombre];
+    const partes    = fechaStr.split('-');
+    const fechaBase = new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));
+    const fechaVenc = new Date(fechaBase);
+    fechaVenc.setDate(fechaVenc.getDate() + dias);
+
+    const hoy   = new Date(); hoy.setHours(0,0,0,0);
+    const diff  = Math.round((fechaVenc - hoy) / 86400000);
+    const label = diff > 0
+      ? `Faltan ${diff} día${diff !== 1 ? 's' : ''}`
+      : diff === 0 ? '¡Vence hoy!' : 'Fecha ya vencida';
+
+    document.getElementById('venc-date').textContent = formatFecha(fechaVenc);
+    document.getElementById('venc-days').textContent  = label;
+    box.classList.add('visible');
+  }
+
+  // ── Enviar formulario ────────────────────────────────
+  window.enviarFormulario = async function() {
+    if (!validar()) return;
+
+    setLoading(true);
+
+    const data = {
+      proveedor:   document.getElementById('proveedor').value,
+      monto:       document.getElementById('monto').value,
+      descripcion: document.getElementById('descripcion').value,
+      fechaCompra: document.getElementById('fechaCompra').value
+    };
+
+    try {
+      const res    = await fetch(WEBAPP_URL, {
+        method:  'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body:    JSON.stringify(data)
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        document.getElementById('success-detail').textContent = result.message || '¡Registrado!';
+        mostrarPanel('success');
+      } else {
+        document.getElementById('error-detail').textContent = result.error || 'Error desconocido.';
+        mostrarPanel('error');
+      }
+    } catch (err) {
+      document.getElementById('error-detail').textContent = 'Error de conexión. Verificá tu internet.';
+      mostrarPanel('error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Validación ───────────────────────────────────────
+  function validar() {
+    let ok = true;
+    const proveedor = document.getElementById('proveedor').value;
+    const monto     = parseFloat(document.getElementById('monto').value);
+    const fecha     = document.getElementById('fechaCompra').value;
+
+    if (!proveedor)         { marcarError('proveedor'); ok = false; }
+    if (isNaN(monto) || monto <= 0) { marcarError('monto'); ok = false; }
+    if (!fecha)             { marcarError('fecha'); ok = false; }
+
+    return ok;
+  }
+
+  function marcarError(id) {
+    document.getElementById(`fg-${id}`).classList.add('has-error');
+    document.getElementById(id).classList.add('error');
+  }
+
+  function limpiarError(id) {
+    document.getElementById(`fg-${id}`)?.classList.remove('has-error');
+    document.getElementById(id)?.classList.remove('error');
+  }
+
+  // ── UI helpers ───────────────────────────────────────
+  function setLoading(on) {
+    const btn = document.getElementById('btn-submit');
+    btn.disabled     = on;
+    btn.innerHTML    = on
+      ? '<span class="spinner"></span> Guardando…'
+      : 'Registrar compra';
+  }
+
+  function mostrarPanel(panel) {
+    document.getElementById('form-section').style.display = 'none';
+    document.getElementById('msg-success').style.display  = panel === 'success' ? 'block' : 'none';
+    document.getElementById('msg-error').style.display    = panel === 'error'   ? 'block' : 'none';
+  }
+
+  window.resetFormulario = function() {
+    document.getElementById('form-section').style.display = 'block';
+    document.getElementById('msg-success').style.display  = 'none';
+    document.getElementById('msg-error').style.display    = 'none';
+    document.getElementById('proveedor').value   = '';
+    document.getElementById('monto').value        = '';
+    document.getElementById('descripcion').value  = '';
+    document.getElementById('venc-preview').classList.remove('visible');
+    ['proveedor','monto','descripcion','fechaCompra'].forEach(limpiarError);
+    setLoading(false);
+
+    // Resetear fecha a hoy
+    const hoy = new Date();
+    const yyyy = hoy.getFullYear();
+    const mm   = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dd   = String(hoy.getDate()).padStart(2, '0');
+    document.getElementById('fechaCompra').value = `${yyyy}-${mm}-${dd}`;
+  };
+
+  // ── Formato de fecha ─────────────────────────────────
+  function formatFecha(date) {
+    return new Date(date).toLocaleDateString('es-AR', {
+      day: '2-digit', month: 'long', year: 'numeric'
+    });
+  }
+
+})();
+</script>
+</body>
+</html>
