@@ -606,7 +606,7 @@
   // ═══════════════════════════════════════════════════
   //  ▼▼▼  ÚNICO VALOR QUE TENÉS QUE EDITAR  ▼▼▼
   // ═══════════════════════════════════════════════════
-  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzgjbUCwvAXRqLyjBSclw1ue0X5bxzHRDokWjH155pOxJuFcS43mXSpZIHUGgNffTdKQw/exec";
+  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyWw9EB9_wiBp8Ofvx9aXIy0i-hAgzdqlorNXsNTWJwNFGlK2Obu1jgyagDfdx59RX78Q/exec";
   // ═══════════════════════════════════════════════════
 
   let session          = { usuario:'', permisos:'' };
@@ -682,7 +682,7 @@
   // ── MOSTRAR / OCULTAR CAMPOS DE CHEQUE ────────────────
   function actualizarCamposCheque() {
     const modalidad = document.getElementById('modalidad').value;
-    const esCheque  = tipoSeleccionado === 'Con Factura' && modalidad.toLowerCase().includes('cheque');
+    const esCheque  = modalidad.toLowerCase().includes('cheque');
     document.getElementById('cheque-section').style.display = esCheque ? 'block' : 'none';
     if (!esCheque) {
       // Limpiar y quitar errores al ocultar
