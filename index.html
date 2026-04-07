@@ -752,7 +752,7 @@
     if (!validar()) return;
     setLoading(true);
     const modalidadVal = document.getElementById('modalidad').value;
-    const esCheque = tipoSeleccionado === 'Con Factura' && modalidadVal.toLowerCase().includes('cheque');
+    const esCheque = modalidadVal.toLowerCase().includes('cheque');
     const data = {
       action: 'registrarCompra', tipoFactura: tipoSeleccionado,
       proveedor: document.getElementById('proveedor').value,
@@ -794,7 +794,7 @@
     if (!document.getElementById('fechaCompra').value) { marcarError('fecha'); ok=false; }
     // Validar campos de cheque si corresponde
     const modalidadVal = document.getElementById('modalidad').value;
-    const esCheque = tipoSeleccionado === 'Con Factura' && modalidadVal.toLowerCase().includes('cheque');
+    const esCheque = modalidadVal.toLowerCase().includes('cheque');
     if (esCheque) {
       if (!document.getElementById('tipoCheque').value) { marcarError('tipoCheque'); ok=false; }
       if (!document.getElementById('numCheque').value.trim()) { marcarError('numCheque'); ok=false; }
